@@ -11,6 +11,15 @@ const ACTIONS = {
   DECIMAL: "DECIMAL"
 };
 
+const REGEX = {
+  SINGLE_OP: new RegExp('^[-+xX*/]{1}'),
+  SINGLE_NUMBER: new RegExp('[0-9]{1}'),
+  FINAL_OPS: /[-+/*xX]{1,}$/g,
+  NUMBERS: /[-+/xX*]{1,}/g,
+  OPERATIONS: /[^-+/xX*]{1,}/g,
+  FIRST_ORDER: new RegExp('[xX*/]')
+};
+
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -20,28 +29,45 @@ class App extends React.Component {
       displayText: "0",
       previousAction: ACTIONS.CLEAR,
       decimalAdded: false,
-      evalResult: 0
+      evalResult: ""
     };
 
-    this.clearInput = this.clearInput.bind(this);
+    this.handleKeyPress = this.handleKeyPress.bind(this);
+    this.clear = this.clear.bind(this);
     this.addNumber = this.addNumber.bind(this);
     this.addDecimal = this.addDecimal.bind(this);
     this.addOperation = this.addOperation.bind(this);
     this.evaluate = this.evaluate.bind(this);
   }
 
-  clearInput() {
+  componentDidMount() {
+    document.addEventListener("keydown", this.handleKeyPress);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.handleKeyPress);
+  }
+
+  handleKeyPress(props) {
+    if (REGEX.SINGLE_NUMBER.test(props.key)) { this.addNumber(props.key); }
+    else if (REGEX.SINGLE_OP.test(props.key)) { this.addOperation(props.key); }
+    else if (props.key === "Enter") { this.evaluate(); }
+    else if (props.key === "Escape") { this.clear(); }
+  }
+
+  clear() {
     this.setState({
       topText: "",
       displayText: "0",
       previousAction: ACTIONS.CLEAR,
       decimalAdded: false,
-      evalResult: 0
+      evalResult: ""
     });
   }
 
   addNumber(elem) {
-    const number = elem.target.innerText;
+    // Either grab from UI (innerText) or keypress (elem)
+    const number = elem.target ? elem.target.innerText : elem;
     // If there is only a 0 in display, do not allow user to add another 0
     if (this.state.topText.length > 0 && this.state.displayText === "0" && number === "0") { return; }
     // Initialized
@@ -88,8 +114,7 @@ class App extends React.Component {
 
   // Special-case the subtract operation which can also be used as a negative operation
   addOperation(elem) {
-    const operation = elem.target.innerText;
-    let checkFinalOpsRegex = /[-+/*xX]{1,}$/g;
+    const operation = elem.target ? elem.target.innerText : elem;
     
     if (this.state.previousAction !== ACTIONS.OPERATION) {
       this.setState({
@@ -110,7 +135,7 @@ class App extends React.Component {
         });
       }
       // Case 2 - Operation is subtract (which can be negative) AND current length of operations is 1, append current operation
-      else if (operation === "-" && this.state.topText.match(checkFinalOpsRegex)[0].length === 1) {
+      else if (operation === "-" && this.state.topText.match(REGEX.FINAL_OPS)[0].length === 1) {
         this.setState({
           ...this.state,
           topText: this.state.topText + operation,
@@ -119,7 +144,7 @@ class App extends React.Component {
       }
       // Case 3 - Any other operation, replace previously queued operations
       else if (operation !== "-") {
-        let topReplaced = this.state.topText.replace(checkFinalOpsRegex, "");
+        let topReplaced = this.state.topText.replace(REGEX.FINAL_OPS, "");
         this.setState({
           ...this.state,
           topText: topReplaced + operation,
@@ -130,40 +155,46 @@ class App extends React.Component {
   }
 
   evaluate(elem) {
+    // If already evaluated, early return
+    if (this.state.previousAction === ACTIONS.EVAL) { return; }
+
     // If empty or only an operation, return "NAN"
-    // if (this.state.topText.length === 0 || new RegExp('[xX*/]{1}').test(this.state.topText) || this.state.evalResult === "NAN") {
-    //   this.setState({
-    //     ...this.state,
-    //     topText: this.state.topText + "=NAN",
-    //     displayText: "NAN",
-    //     previousAction: ACTIONS.EVAL,
-    //     evalResult: "NAN"
-    //   });
-    //   return;
-    // }
+    if (this.state.topText.length === 0 || REGEX.SINGLE_OP.test(this.state.topText) || this.state.evalResult === "NAN") {
+      this.setState({
+        ...this.state,
+        topText: this.state.topText + "=NAN",
+        displayText: "NAN",
+        previousAction: ACTIONS.EVAL,
+        evalResult: "NAN"
+      });
+      return;
+    }
+    if (REGEX.SINGLE_NUMBER.test(this.state.topText)) {
+      this.setState({
+        ...this.state,
+        topText: this.state.topText + "=" + this.state.topText,
+        previousAction: ACTIONS.EVAL,
+        evalResult: this.state.displayText
+      });
+    }
     
     // Handle decimals
-    let numbersRegex = /[-+/xX*]{1,}/g;
-    console.log(this.state.topText.split(numbersRegex));
-    let numbers = this.state.topText.split(numbersRegex).filter(elem => elem.length > 0).map(elem => parseFloat(elem));
-    let operationsRegex = /[^-+/xX*]{1,}/g;
-    let operations = this.state.topText.split(operationsRegex);
+    let numbers = this.state.topText.split(REGEX.NUMBERS).filter(elem => elem.length > 0).map(elem => parseFloat(elem));
+    let operations = this.state.topText.split(REGEX.OPERATIONS);
     
     // See if first operation flips sign for first element
     if (operations[0] === "-") { numbers[0] *= -1; }
     operations.shift();
 
     // Iterate and execute first-order operations first
-    let firstOrderRegex = new RegExp('[xX*/]');
     for (let i = 0; i < operations.length; ++i) {
-      if (firstOrderRegex.test(operations[i])) {
+      if (REGEX.FIRST_ORDER.test(operations[i])) {
         // Differentiate between whether the current operations flips the sign for the second number
         let result = operations[i].length === 2 
           ? this.firstOrderOp(numbers[i], operations[i][0], numbers[i + 1] * -1.0)
           : this.firstOrderOp(numbers[i], operations[i], numbers[i + 1]);
         numbers = [...numbers.slice(0, i), result, ...numbers.slice(i + 2)];
         operations = [...operations.slice(0, i), ...operations.slice(i + 1)];
-        console.log(numbers, operations);
         --i;
       }
     }
@@ -184,13 +215,12 @@ class App extends React.Component {
       topText: this.state.topText + "=" + numbers[0],
       displayText: numbers[0],
       previousAction: ACTIONS.EVAL,
-      evalResult: numbers[0]
+      evalResult: String(numbers[0])
     });
   }
 
   // First order is multiplication/division
   firstOrderOp(first, op, second) {
-    console.log(first, op, second);
     if (!second) { return first; }
     else if (op === "/") { return first / second; }
     else { return first * second; }
@@ -209,7 +239,7 @@ class App extends React.Component {
         <div id="header">Calculator</div>
         <div id="top">{this.state.topText}</div>
         <div id="display">{this.state.displayText}</div>
-        <Button id="clear" onClick={this.clearInput} variant="contained" color="secondary">AC</Button>
+        <Button id="clear" onClick={this.clear} variant="contained" color="secondary">AC</Button>
         <Button id="divide" onClick={this.addOperation} variant="contained">/</Button>
         <Button id="multiply" onClick={this.addOperation} variant="contained">x</Button>
         <Button id="seven" onClick={this.addNumber} variant="contained">7</Button>
