@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '@material-ui/core/Button';
 import './Calculator.css';
 
@@ -13,7 +13,9 @@ const ACTIONS = {
 
 const REGEX = {
   SINGLE_OP: new RegExp('^[-+xX*/]{1}'),
-  SINGLE_NUMBER: new RegExp('[0-9]{1}'),
+  SINGLE_NUMBER: new RegExp('^[0-9]{1}'),
+  // One operation and at least one number
+  OP_NUMBER: new RegExp('^[-+xX*/]{1}[0-9]{1,}'),
   FINAL_OPS: /[-+/*xX]{1,}$/g,
   NUMBERS: /[-+/xX*]{1,}/g,
   OPERATIONS: /[^-+/xX*]{1,}/g,
@@ -143,8 +145,24 @@ function Calculator() {
     // If already evaluated, early return
     if (calcState.previousAction === ACTIONS.EVAL) { return; }
 
+    // Containing one operation and a range of numbers
+    if (REGEX.OP_NUMBER.test(calcState.topText)) {
+      calcState.topText[0] === "-" ? setCalcState({
+        ...calcState,
+        topText: calcState.topText + "=" + calcState.topText,
+        displayText: calcState.topText,
+        previousAction: ACTIONS.EVAL,
+        evalResult: calcState.topText
+      }) : setCalcState({
+        ...calcState,
+        topText: calcState.topText + "=" + calcState.topText.slice(1),
+        displayText: calcState.topText.slice(1),
+        previousAction: ACTIONS.EVAL,
+        evalResult: calcState.topText.slice(1)
+      });
+    }
     // If empty or only an operation, return "NAN"
-    if (calcState.topText.length === 0 || REGEX.SINGLE_OP.test(calcState.topText) || calcState.evalResult === "NAN") {
+    else if (calcState.topText.length === 0 || REGEX.SINGLE_OP.test(calcState.topText) || calcState.evalResult === "NAN") {
       setCalcState({
         ...calcState,
         topText: calcState.topText + "=NAN",
@@ -154,7 +172,7 @@ function Calculator() {
       });
       return;
     }
-    if (REGEX.SINGLE_NUMBER.test(calcState.topText)) {
+    else if (REGEX.SINGLE_NUMBER.test(calcState.topText)) {
       setCalcState({
         ...calcState,
         topText: calcState.topText + "=" + calcState.topText,
