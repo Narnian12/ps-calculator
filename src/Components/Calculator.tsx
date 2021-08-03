@@ -31,7 +31,7 @@ function Calculator() {
   });
 
   useEffect(() => {
-    function handleKeyPress(props) {
+    function handleKeyPress(props: { key: string; }) {
       if (REGEX.SINGLE_NUMBER.test(props.key)) { addNumber(props.key); }
       else if (REGEX.SINGLE_OP.test(props.key)) { addOperation(props.key); }
       else if (props.key === "Enter") { evaluate(); }
@@ -54,9 +54,7 @@ function Calculator() {
     });
   }
 
-  const addNumber = (elem) => {
-    // Either grab from UI (innerText) or keypress (elem)
-    const number = elem.target ? elem.target.innerText : elem;
+  const addNumber = (number: string) => {
     // If there is only a 0 in display, do not allow user to add another 0
     if (calcState.topText.length > 0 && calcState.displayText === "0" && number === "0") { return; }
     // Initialized
@@ -101,9 +99,7 @@ function Calculator() {
     }
   }
 
-  const addOperation = (elem) => {
-    const operation = elem.target ? elem.target.innerText : elem;
-    
+  const addOperation = (operation: string) => {
     if (calcState.previousAction !== ACTIONS.OPERATION) {
       setCalcState({
         ...calcState,
@@ -114,6 +110,7 @@ function Calculator() {
       });
     }
     else {
+      const topText = calcState.topText.match(REGEX.FINAL_OPS);
       // Case 1 - Operation is the first element in display, replace operation in both top and display
       if (calcState.topText.length === 1) {
         setCalcState({
@@ -123,7 +120,7 @@ function Calculator() {
         });
       }
       // Case 2 - Operation is subtract (which can be negative) AND current length of operations is 1, append current operation
-      else if (operation === "-" && calcState.topText.match(REGEX.FINAL_OPS)[0].length === 1) {
+      else if (operation === "-" && topText && topText[0].length === 1) {
         setCalcState({
           ...calcState,
           topText: calcState.topText + operation,
@@ -142,7 +139,7 @@ function Calculator() {
     }
   }
 
-  const evaluate = (elem) => {
+  const evaluate = () => {
     // If already evaluated, early return
     if (calcState.previousAction === ACTIONS.EVAL) { return; }
 
@@ -201,21 +198,21 @@ function Calculator() {
     setCalcState({
       ...calcState,
       topText: calcState.topText + "=" + numbers[0],
-      displayText: numbers[0],
+      displayText: String(numbers[0]),
       previousAction: ACTIONS.EVAL,
       evalResult: String(numbers[0])
     });
   }
 
   // First order is multiplication/division
-  const firstOrderOp = (first, op, second) => {
+  const firstOrderOp = (first: number, op: string, second: number) => {
     if (!second) { return first; }
     else if (op === "/") { return first / second; }
     else { return first * second; }
   }
 
   // Second order is addition/subtraction
-  const secondOrderOp = (first, op, second) => {
+  const secondOrderOp = (first: number, op: string, second: number) => {
     if (!second) { return first; }
     else if (op === "+") { return first + second; }
     else { return first - second; }
@@ -226,21 +223,21 @@ function Calculator() {
       <div id="top">{calcState.topText}</div>
       <div id="display">{calcState.displayText}</div>
       <Button id="clear" onClick={() => clear()} variant="contained" color="secondary">AC</Button>
-      <Button id="divide" onClick={(op) => addOperation(op)} variant="contained">/</Button>
-      <Button id="multiply" onClick={(op) => addOperation(op)} variant="contained">x</Button>
-      <Button id="seven" onClick={(num) => addNumber(num)} variant="contained">7</Button>
-      <Button id="eight" onClick={(num) => addNumber(num)} variant="contained">8</Button>
-      <Button id="nine" onClick={(num) => addNumber(num)} variant="contained">9</Button>
-      <Button id="subtract" onClick={(op) => addOperation(op)} variant="contained">-</Button>
-      <Button id="four" onClick={(num) => addNumber(num)} variant="contained">4</Button>
-      <Button id="five" onClick={(num) => addNumber(num)} variant="contained">5</Button>
-      <Button id="six" onClick={(num) => addNumber(num)} variant="contained">6</Button>
-      <Button id="add" onClick={(num) => addOperation()} variant="contained">+</Button>
-      <Button id="one" onClick={(num) => addNumber(num)} variant="contained">1</Button>
-      <Button id="two" onClick={(num) => addNumber(num)} variant="contained">2</Button>
-      <Button id="three" onClick={(num) => addNumber(num)} variant="contained">3</Button>
+      <Button id="divide" onClick={() => addOperation("/")} variant="contained">/</Button>
+      <Button id="multiply" onClick={() => addOperation("*")} variant="contained">x</Button>
+      <Button id="seven" onClick={() => addNumber("7")} variant="contained">7</Button>
+      <Button id="eight" onClick={() => addNumber("8")} variant="contained">8</Button>
+      <Button id="nine" onClick={() => addNumber("9")} variant="contained">9</Button>
+      <Button id="subtract" onClick={() => addOperation("-")} variant="contained">-</Button>
+      <Button id="four" onClick={() => addNumber("4")} variant="contained">4</Button>
+      <Button id="five" onClick={() => addNumber("5")} variant="contained">5</Button>
+      <Button id="six" onClick={() => addNumber("6")} variant="contained">6</Button>
+      <Button id="add" onClick={() => addOperation("+")} variant="contained">+</Button>
+      <Button id="one" onClick={() => addNumber("1")} variant="contained">1</Button>
+      <Button id="two" onClick={() => addNumber("2")} variant="contained">2</Button>
+      <Button id="three" onClick={() => addNumber("3")} variant="contained">3</Button>
       <Button id="equals" onClick={() => evaluate()} variant="contained" color="primary">=</Button>
-      <Button id="zero" onClick={(num) => addNumber(num)} variant="contained">0</Button>
+      <Button id="zero" onClick={() => addNumber("0")} variant="contained">0</Button>
       <Button id="decimal" onClick={() => addDecimal()} variant="contained">.</Button>
     </div>
   );
