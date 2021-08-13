@@ -1,6 +1,6 @@
 {
   "name": "ps_calculator",
-  "homepage": "http://narnian12.github.io/ps_calculator",
+  "homepage": "http://narnian12.github.io/ps-calculator",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
