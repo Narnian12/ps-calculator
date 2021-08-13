@@ -1,20 +1,20 @@
 {
   "files": {
-    "main.css": "/ps_calculator/static/css/main.e18e5dbc.chunk.css",
-    "main.js": "/ps_calculator/static/js/main.6265239e.chunk.js",
-    "main.js.map": "/ps_calculator/static/js/main.6265239e.chunk.js.map",
-    "runtime-main.js": "/ps_calculator/static/js/runtime-main.e9c23151.js",
-    "runtime-main.js.map": "/ps_calculator/static/js/runtime-main.e9c23151.js.map",
-    "static/js/2.7725a3bc.chunk.js": "/ps_calculator/static/js/2.7725a3bc.chunk.js",
-    "static/js/2.7725a3bc.chunk.js.map": "/ps_calculator/static/js/2.7725a3bc.chunk.js.map",
-    "index.html": "/ps_calculator/index.html",
-    "static/css/main.e18e5dbc.chunk.css.map": "/ps_calculator/static/css/main.e18e5dbc.chunk.css.map",
-    "static/js/2.7725a3bc.chunk.js.LICENSE.txt": "/ps_calculator/static/js/2.7725a3bc.chunk.js.LICENSE.txt"
+    "main.css": "/ps-calculator/static/css/main.476bab95.chunk.css",
+    "main.js": "/ps-calculator/static/js/main.e50ef6c9.chunk.js",
+    "main.js.map": "/ps-calculator/static/js/main.e50ef6c9.chunk.js.map",
+    "runtime-main.js": "/ps-calculator/static/js/runtime-main.9518906a.js",
+    "runtime-main.js.map": "/ps-calculator/static/js/runtime-main.9518906a.js.map",
+    "static/js/2.7725a3bc.chunk.js": "/ps-calculator/static/js/2.7725a3bc.chunk.js",
+    "static/js/2.7725a3bc.chunk.js.map": "/ps-calculator/static/js/2.7725a3bc.chunk.js.map",
+    "index.html": "/ps-calculator/index.html",
+    "static/css/main.476bab95.chunk.css.map": "/ps-calculator/static/css/main.476bab95.chunk.css.map",
+    "static/js/2.7725a3bc.chunk.js.LICENSE.txt": "/ps-calculator/static/js/2.7725a3bc.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.e9c23151.js",
+    "static/js/runtime-main.9518906a.js",
     "static/js/2.7725a3bc.chunk.js",
-    "static/css/main.e18e5dbc.chunk.css",
-    "static/js/main.6265239e.chunk.js"
+    "static/css/main.476bab95.chunk.css",
+    "static/js/main.e50ef6c9.chunk.js"
   ]
 }
